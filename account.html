@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Account — Aluqe Couture</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600,700;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --ink:#030303;--panel:#0d0c0a;--panel-2:#141210;--line:#262019;
+  --ivory:#f5f5f1;--muted:#a39a86;--dim:#6f6858;
+  --bronze:#c9a24c;--bronze-dim:#8a6f34;--wine:#7f070c;--wine-2:#d10d15;
+  --silver:#b9bfc6;--gold:#e0bd6b;--diamond:#bfe9ff;
+  --serif:"Playfair Display",serif;--sans:"Inter",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--ivory);font-family:var(--sans);min-height:100vh}
+a{color:var(--bronze);text-decoration:none}
+button,input{font:inherit;color:inherit}
+input{background:var(--panel-2);border:1px solid var(--line);color:var(--ivory);padding:12px 14px;border-radius:2px;width:100%}
+input:focus{outline:1px solid var(--bronze)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--ivory);padding:12px 18px;border-radius:2px;font-size:12.5px;letter-spacing:.4px}
+button:hover{border-color:var(--bronze)}
+button.primary{background:var(--bronze);color:#0b0a08;border-color:var(--bronze);font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost{background:none}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 5vw;border-bottom:1px solid var(--line)}
+header .brand{font-family:var(--serif);font-size:20px;font-weight:600}
+header .brand em{font-style:italic;color:var(--bronze)}
+header a.back{font-size:11px;letter-spacing:1px;color:var(--muted)}
+header a.back:hover{color:var(--ivory)}
+
+.wrap{max-width:960px;margin:0 auto;padding:60px 5vw 100px}
+
+/* auth forms */
+#authScreen{max-width:380px;margin:60px auto;text-align:center}
+#authScreen h1{font-family:var(--serif);font-size:30px;margin:0 0 6px}
+#authScreen p.sub{color:var(--dim);font-size:12.5px;margin:0 0 30px}
+.tabs{display:flex;border:1px solid var(--line);margin-bottom:26px}
+.tabs button{flex:1;background:none;border:0;border-radius:0;padding:12px;color:var(--muted)}
+.tabs button.active{background:var(--panel-2);color:var(--ivory);border-bottom:2px solid var(--bronze)}
+#authScreen form{display:flex;flex-direction:column;gap:12px;text-align:left}
+#authScreen label{font-size:11px;letter-spacing:.5px;color:var(--muted)}
+#authMsg{font-size:12px;color:var(--wine-2);min-height:16px;text-align:left}
+#authMsg.ok{color:#7dbf8e}
+
+/* dashboard */
+#dashboard{display:none}
+.dash-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:40px}
+.dash-head h1{font-family:var(--serif);font-size:32px;margin:0 0 6px}
+.dash-head p{color:var(--muted);margin:0;font-size:13px}
+.tier-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:1px solid var(--line);font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.tier-badge b{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tier-badge.none b{background:var(--dim)}
+.tier-badge.silver{border-color:var(--silver)} .tier-badge.silver b{background:var(--silver)}
+.tier-badge.gold{border-color:var(--gold)} .tier-badge.gold b{background:var(--gold)}
+.tier-badge.diamond{border-color:var(--diamond);box-shadow:0 0 18px rgba(191,233,255,.18)} .tier-badge.diamond b{background:var(--diamond)}
+
+section.dash-section{margin-bottom:52px}
+section.dash-section h2{font-family:var(--serif);font-size:22px;margin:0 0 6px}
+section.dash-section p.sub{color:var(--dim);font-size:12px;margin:0 0 20px}
+
+.exclusive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
+.ex-card{background:var(--panel-2);border:1px solid var(--line)}
+.ex-card img{width:100%;height:230px;object-fit:cover;display:block;filter:saturate(.75)}
+.ex-card .ex-copy{padding:12px 14px}
+.ex-card h4{font-size:11px;letter-spacing:.5px;margin:0 0 6px}
+.ex-card b{color:var(--bronze);font-size:12.5px}
+.ex-card .ex-tier{display:inline-block;margin-top:8px;font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+
+.locked-panel{border:1px dashed var(--line);padding:36px;text-align:center;color:var(--muted);font-size:12.5px}
+.locked-panel a{display:inline-block;margin-top:14px}
+
+.acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.acct-grid .field{margin-bottom:16px}
+.acct-grid .field label{display:block;font-size:10.5px;letter-spacing:.5px;color:var(--dim);margin-bottom:4px}
+.acct-grid .field div{font-size:13.5px}
+
+.empty-note{color:var(--dim);font-size:12.5px;border:1px solid var(--line);padding:24px;text-align:center}
+
+@media(max-width:640px){ .acct-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ============ CONFIG — same Supabase project as admin.html / cms-client.js ============ -->
+<script>
+  const SUPABASE_URL = 'https://bhoqjvmtdvhamqeraxyo.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJob3Fqdm10ZHZoYW1xZXJheHlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNjA1MTAsImV4cCI6MjEwNTczNjUxMH0.Jpy-ivIckgPWEJhnHX-2fhbWBmU3p3PcuHd8S0NBMHE';
+</script>
+<!-- ======================================================================================= -->
+
+<header>
+  <span class="brand">Aluqe <em>Couture</em></span>
+  <a class="back" href="index.html">← Back to shop</a>
+</header>
+
+<div class="wrap">
+
+  <div id="authScreen">
+    <h1>My Account</h1>
+    <p class="sub">Sign in to view your membership and exclusive collection.</p>
+    <div class="tabs">
+      <button id="tabSignIn" class="active">Sign In</button>
+      <button id="tabSignUp">Create Account</button>
+    </div>
+
+    <form id="signInForm">
+      <div><label>Email</label><input type="email" id="siEmail" required autocomplete="username"></div>
+      <div><label>Password</label><input type="password" id="siPassword" required autocomplete="current-password"></div>
+      <button class="primary" type="submit">Sign In</button>
+      <button type="button" class="ghost" id="forgotBtn" style="font-size:11px;color:var(--dim);border:0;background:none;padding:4px 0">Forgot password?</button>
+    </form>
+
+    <form id="signUpForm" style="display:none">
+      <div><label>Full name</label><input type="text" id="suName" required></div>
+      <div><label>Email</label><input type="email" id="suEmail" required autocomplete="username"></div>
+      <div><label>Password (min. 6 characters)</label><input type="password" id="suPassword" required minlength="6" autocomplete="new-password"></div>
+      <button class="primary" type="submit">Create Account</button>
+    </form>
+
+    <div id="authMsg"></div>
+  </div>
+
+  <div id="dashboard">
+    <div class="dash-head">
+      <div>
+        <h1 id="dashName">Welcome</h1>
+        <p id="dashEmail"></p>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="tier-badge none" id="tierBadge"><b></b><span id="tierLabel">No tier</span></span>
+        <button id="signOutBtn">Sign out</button>
+      </div>
+    </div>
+
+    <section class="dash-section">
+      <h2>Your Details</h2>
+      <div class="acct-grid">
+        <div class="field"><label>Full name</label><div id="fName">—</div></div>
+        <div class="field"><label>Email</label><div id="fEmail">—</div></div>
+        <div class="field"><label>Membership tier</label><div id="fTier">—</div></div>
+        <div class="field"><label>Member since</label><div id="fSince">—</div></div>
+      </div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Your Exclusive Collection</h2>
+      <p class="sub">Pieces released only to your membership tier and above.</p>
+      <div id="exclusiveArea"><p class="sub">Loading…</p></div>
+    </section>
+
+    <section class="dash-section">
+      <h2>Order History</h2>
+      <div id="ordersArea"><div class="empty-note">No orders yet.</div></div>
+    </section>
+  </div>
+
+</div>
+
+<script>
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $=s=>document.querySelector(s);
+function esc(s){ return (s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return '$'+Number(n).toFixed(2); }
+function setMsg(text,ok){ const el=$('#authMsg'); el.textContent=text; el.className=ok?'ok':''; }
+
+/* ---------- tab switching on the auth screen ---------- */
+$('#tabSignIn').addEventListener('click',()=>{
+  $('#tabSignIn').classList.add('active'); $('#tabSignUp').classList.remove('active');
+  $('#signInForm').style.display='flex'; $('#signUpForm').style.display='none'; setMsg('');
+});
+$('#tabSignUp').addEventListener('click',()=>{
+  $('#tabSignUp').classList.add('active'); $('#tabSignIn').classList.remove('active');
+  $('#signUpForm').style.display='flex'; $('#signInForm').style.display='none'; setMsg('');
+});
+
+/* ---------- sign in ---------- */
+$('#signInForm').addEventListener('submit', async e=>{
+  e.preventDefault(); setMsg('');
+  const { error } = await db.auth.signInWithPassword({ email:$('#siEmail').value, password:$('#siPassword').value });
+  if(error){ setMsg(error.message); return; }
+  boot();
+});
+
+/* ---------- create account ---------- */
+$('#signUpForm').addEventListener('submit', async e=>{
+  e.preventDefault(); setMsg('');
+  const { data, error } = await db.auth.signUp({
+    email: $('#suEmail').value, password: $('#suPassword').value,
+    options:{ data:{ full_name: $('#suName').value } }
+  });
+  if(error){ setMsg(error.message); return; }
+  if(!data.session){
+    setMsg('Account created — check your email to confirm it, then sign in.', true);
+    $('#tabSignIn').click();
+  } else {
+    boot();
+  }
+});
+
+/* ---------- forgot password ---------- */
+$('#forgotBtn').addEventListener('click', async ()=>{
+  const email=$('#siEmail').value;
+  if(!email){ setMsg('Enter your email above first, then tap "Forgot password?" again.'); return; }
+  const { error } = await db.auth.resetPasswordForEmail(email);
+  setMsg(error?error.message:'Password reset email sent.', !error);
+});
+
+$('#signOutBtn').addEventListener('click', async ()=>{ await db.auth.signOut(); location.reload(); });
+
+/* ---------- dashboard ---------- */
+const TIER_LABEL={none:'No tier yet',silver:'Silver Member',gold:'Gold Member',diamond:'Diamond Member'};
+
+async function boot(){
+  const { data:{ session } } = await db.auth.getSession();
+  if(!session) return;
+
+  let { data: profile } = await db.from('profiles').select('*').eq('id',session.user.id).single();
+  if(!profile){
+    // the auto-create trigger can lag a moment right after sign-up; give it one retry
+    await new Promise(r=>setTimeout(r,700));
+    ({ data: profile } = await db.from('profiles').select('*').eq('id',session.user.id).single());
+  }
+  const tier = profile?.membership_tier || 'none';
+
+  $('#authScreen').style.display='none';
+  $('#dashboard').style.display='block';
+  $('#dashName').textContent = 'Welcome, '+(profile?.full_name || session.user.email);
+  $('#dashEmail').textContent = session.user.email;
+  $('#fName').textContent = profile?.full_name || '—';
+  $('#fEmail').textContent = session.user.email;
+  $('#fTier').textContent = TIER_LABEL[tier];
+  $('#fSince').textContent = profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—';
+
+  const badge=$('#tierBadge');
+  badge.className='tier-badge '+tier;
+  $('#tierLabel').textContent = TIER_LABEL[tier];
+
+  await loadExclusive(tier);
+}
+
+async function loadExclusive(tier){
+  const area=$('#exclusiveArea');
+  if(tier==='none'){
+    area.innerHTML=`<div class="locked-panel">Exclusive drops are released to Silver, Gold and Diamond members.<br>
+      Reach out to the Aluqe Couture team to be considered for a membership tier.
+      <br><a href="mailto:hello@aluquecouture.com">Get in touch →</a></div>`;
+    return;
+  }
+  // RLS only returns products this account's tier is actually allowed to see —
+  // this query can never leak a higher tier's pieces, even if someone edits the JS.
+  const { data, error } = await db.from('products')
+    .select('*, product_images(face,url)')
+    .eq('is_active',true).not('required_tier','is',null)
+    .order('sort_order');
+  if(error || !data || !data.length){
+    area.innerHTML=`<div class="empty-note">Nothing exclusive has been released to your tier yet — check back soon.</div>`;
+    return;
+  }
+  area.innerHTML=`<div class="exclusive-grid">${data.map(p=>{
+    const front=(p.product_images||[]).find(i=>i.face==='front');
+    return `<div class="ex-card">
+      <img src="${esc(front?.url||'')}" alt="${esc(p.name)}">
+      <div class="ex-copy">
+        <h4>${esc(p.name)}</h4>
+        <b>${p.is_custom_order?'From ':''}${money(p.price)}</b>
+        <span class="ex-tier">${p.required_tier} exclusive</span>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+boot();
+</script>
+</body>
+</html>
